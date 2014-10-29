@@ -1,6 +1,8 @@
 #ifndef ADVANCEDSETTINGS_H
 #define ADVANCEDSETTINGS_H
 
+#include <libtorrent/session.hpp>
+
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QSpinBox>
@@ -22,6 +24,7 @@ enum AdvSettingsRows {DISK_CACHE, DISK_CACHE_TTL, OS_CACHE, SAVE_RESUME_DATA_INT
                     #endif
                       CONFIRM_DELETE_TORRENT, CONFIRM_RECHECK_TORRENT, TRACKER_EXCHANGE,
                       ANNOUNCE_ALL_TRACKERS,
+                      CHOKING_ALGORITHM, SEED_CHOKING_ALGORITHM,
                       ROW_COUNT};
 
 class AdvancedSettings: public QTableWidget {
@@ -32,7 +35,7 @@ private:
   QCheckBox cb_os_cache, cb_ignore_limits_lan, cb_recheck_completed, cb_resolve_countries, cb_resolve_hosts,
   cb_super_seeding, cb_program_notifications, cb_tracker_status, cb_confirm_torrent_deletion,
   cb_confirm_torrent_recheck, cb_enable_tracker_ext, cb_listen_ipv6;
-  QComboBox combo_iface;
+  QComboBox combo_iface, combo_choking_algorithm, combo_seed_choking_algorithm;
   QSpinBox spin_cache_ttl;
 #if defined(Q_OS_WIN) || defined(Q_OS_MAC)
   QCheckBox cb_update_check;
@@ -125,6 +128,8 @@ public slots:
     // Tracker exchange
     pref->setTrackerExchangeEnabled(cb_enable_tracker_ext.isChecked());
     pref->setAnnounceToAllTrackers(cb_announce_all_trackers.isChecked());
+    pref->setChokingAlgorithm(combo_choking_algorithm.itemData(combo_choking_algorithm.currentIndex()).toInt());
+    pref->setSeedChokingAlgorithm(combo_seed_choking_algorithm.itemData(combo_seed_choking_algorithm.currentIndex()).toInt());
   }
 
 signals:
@@ -297,6 +302,19 @@ private slots:
     // Announce to all trackers
     cb_announce_all_trackers.setChecked(pref->announceToAllTrackers());
     setRow(ANNOUNCE_ALL_TRACKERS, tr("Always announce to all trackers"), &cb_announce_all_trackers);
+    // Choking algorithm
+    combo_choking_algorithm.addItem("fixed_slots_choker", libtorrent::session_settings::fixed_slots_choker);
+    combo_choking_algorithm.addItem("auto_expand_choker", libtorrent::session_settings::auto_expand_choker);
+    combo_choking_algorithm.addItem("rate_based_choker", libtorrent::session_settings::rate_based_choker);
+    combo_choking_algorithm.addItem("bittyrant_choker", libtorrent::session_settings::bittyrant_choker);
+    combo_choking_algorithm.setCurrentIndex(pref->getChokingAlgorithm());
+    setRow(CHOKING_ALGORITHM, tr("Select choking algorithm"), &combo_choking_algorithm);
+    // Seed choking algorithm
+    combo_seed_choking_algorithm.addItem("round_robin", libtorrent::session_settings::round_robin);
+    combo_seed_choking_algorithm.addItem("fastest_upload", libtorrent::session_settings::fastest_upload);
+    combo_seed_choking_algorithm.addItem("anti_leech", libtorrent::session_settings::anti_leech);
+    combo_seed_choking_algorithm.setCurrentIndex(pref->getSeedChokingAlgorithm());
+    setRow(SEED_CHOKING_ALGORITHM, tr("Select seed choking algorithm"), &combo_seed_choking_algorithm);
   }
 
 };

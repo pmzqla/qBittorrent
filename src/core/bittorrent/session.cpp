@@ -433,7 +433,8 @@ void Session::setSessionSettings()
     else
         sessionSettings.force_proxy = false;
     sessionSettings.no_connect_privileged_ports = false;
-    sessionSettings.seed_choking_algorithm = libt::session_settings::fastest_upload;
+    sessionSettings.choking_algorithm = pref->getChokingAlgorithm();
+    sessionSettings.seed_choking_algorithm = pref->getSeedChokingAlgorithm();
     qDebug() << "Set session settings";
     m_nativeSession->set_settings(sessionSettings);
 }
